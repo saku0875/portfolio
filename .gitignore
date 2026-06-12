@@ -1,0 +1,20 @@
+cat << 'EOF' > .gitignore
+# 環境変数（機密情報）
+.env
+**/.env
+!**/.env.example
+
+# 依存パッケージ
+**/node_modules/
+
+# Rails
+api/tmp/
+api/log/
+api/storage/
+
+# Next.js
+frontend/.next/
+
+# OS
+.DS_Store
+EOF
