@@ -2,6 +2,7 @@ import { getPosts, getWorks } from "@/lib/api";
 import SplitText from "@/components/SplitText";
 import Reveal from "@/components/Reveal";
 import CatDialog from "@/components/CatDialog";
+import VideoSlider from "@/components/VideoSlider";
 
 const TECH = ["Next.js", "Ruby on Rails", "C", "Pyxel", "Arduino"];
 
@@ -23,6 +24,14 @@ export default async function HomePage() {
       {/* ===== 猫の会話 ===== */}
       <section id="cat" className="px-6 pb-24">
         <CatDialog />
+      </section>
+
+      {/* ===== Videos ===== */}
+      <section id="videos" className="mx-auto max-w-4xl px-6 py-20">
+        <h2 className="disp mb-8 text-3xl text-center">
+          <SplitText text="Videos" anim="anim-pop" />
+        </h2>
+        <VideoSlider works={works} />
       </section>
 
       {/* ===== About ===== */}
@@ -74,12 +83,12 @@ export default async function HomePage() {
           </span>
         </h2>
 
-        <div className="grid gap-6 sm:grid-cols-2">
+<div className="grid gap-6 sm:grid-cols-2">
           {works.map((work) => (
             <Reveal key={work.id} className="reveal">
-              <article className="card h-full p-6">
+              <article id={`work-${work.id}`} className="card h-full p-6">
                 <h3 className="disp text-lg">{work.title}</h3>
-
+                
                 {work.description && (
                   <p className="mt-2 text-sm text-[var(--ink-soft)]">{work.description}</p>
                 )}

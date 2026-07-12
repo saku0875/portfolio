@@ -248,6 +248,140 @@ body {
   50%      { transform: rotate(14deg); }
 }
 
+/* ===== Videos スライドショー ===== */
+.slider {
+  position: relative;
+  overflow: hidden;
+  border: 2.5px solid var(--ink);
+  border-radius: 20px;
+  background: var(--paper-2);
+  box-shadow: 5px 5px 0 var(--line);
+}
+
+/* スライドを同じgridセルに重ねる */
+.slides { display: grid; }
+.slide {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+.slide.is-active { visibility: visible; }
+
+/* 映像・プレースホルダー枠 */
+.slide__media {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  background: var(--akane-pale);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.slide__media video,
+.slide__media img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.slide__placeholder {
+  font-family: var(--mono);
+  font-size: .8rem;
+  color: var(--ink-soft);
+}
+
+/* タイトル帯 */
+.slide__title {
+  font-family: var(--disp);
+  font-weight: 900;
+  font-size: 1.15rem;
+  padding: 14px 20px;
+  border-top: 2.5px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.slide__hint {
+  font-family: var(--mono);
+  font-size: .68rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.slide:hover .slide__title { background: var(--akane-pale); }
+
+/* 前へ / 次へ ボタン */
+.slider__nav {
+  position: absolute;
+  top: 0; bottom: 0;
+  z-index: 10;
+  width: 56px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: color-mix(in srgb, var(--paper-2) 55%, transparent);
+  color: var(--ink);
+  font-size: 1.4rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .2s, background .2s;
+}
+.slider:hover .slider__nav { opacity: 1; }
+.slider__nav:hover { background: color-mix(in srgb, var(--akane-pale) 85%, transparent); }
+.slider__nav:focus-visible { opacity: 1; outline: 3px solid var(--akane); outline-offset: -3px; }
+.slider__nav--prev { left: 0; }
+.slider__nav--next { right: 0; }
+
+/* インジケーター */
+.slider__dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+.slider__dot {
+  width: 12px; height: 12px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--paper-2);
+  cursor: pointer;
+  padding: 0;
+  transition: background .2s, transform .2s var(--ease-pop);
+}
+.slider__dot.is-active { background: var(--akane); transform: scale(1.25); }
+.slider__dot:focus-visible { outline: 3px solid var(--akane); outline-offset: 2px; }
+
+/* 切替時の幕（左から覆って右へ抜ける） */
+.slider__curtain {
+  position: absolute; inset: 0; z-index: 20;
+  pointer-events: none;
+}
+.slider__curtain i {
+  position: absolute; inset: 0; display: block;
+  transform: scaleX(0); transform-origin: left;
+}
+.slider__curtain i:nth-child(1) { background: var(--gold); }
+.slider__curtain i:nth-child(2) { background: var(--akane-lt); }
+.slider__curtain i:nth-child(3) { background: var(--akane); }
+.slider.is-wiping .slider__curtain i {
+  animation: slideWipe .9s var(--ease-cut) both;
+}
+.slider.is-wiping .slider__curtain i:nth-child(1) { animation-delay: 0s; }
+.slider.is-wiping .slider__curtain i:nth-child(2) { animation-delay: .06s; }
+.slider.is-wiping .slider__curtain i:nth-child(3) { animation-delay: .12s; }
+@keyframes slideWipe {
+  0%   { transform: scaleX(0); transform-origin: left; }
+  45%  { transform: scaleX(1); transform-origin: left; }
+  55%  { transform: scaleX(1); transform-origin: right; }
+  100% { transform: scaleX(0); transform-origin: right; }
+}
+
+/* ===== 遷移先カードのハイライト ===== */
+.card:target { animation: cardHighlight 1.4s var(--ease-pop); }
+@keyframes cardHighlight {
+  0%   { box-shadow: 0 0 0 5px var(--akane); }
+  100% { box-shadow: 4px 4px 0 var(--line); }
+}
+
 /* ===== アンカーリンクの位置調整（固定ヘッダー分） ===== */
 section[id] { scroll-margin-top: 90px; }
 
