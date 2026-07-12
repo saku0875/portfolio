@@ -184,6 +184,73 @@ body {
 /* ===== 見出しフォント ===== */
 .disp { font-family: var(--disp); font-weight: 900; }
 
+/* ===== 猫の会話 ===== */
+.bubble {
+  position: relative;
+  width: 100%;
+  border: 2.5px solid var(--ink);
+  border-radius: 16px;
+  background: var(--paper-2);
+  padding: 14px 18px 16px;
+  font-size: .9rem;
+  line-height: 1.8;
+  min-height: 5.2em;
+  box-shadow: 3px 3px 0 var(--line);
+}
+.bubble::after {
+  content: "";
+  position: absolute; left: 50%; bottom: -11px;
+  width: 16px; height: 16px;
+  background: var(--paper-2);
+  border-right: 2.5px solid var(--ink);
+  border-bottom: 2.5px solid var(--ink);
+  transform: translateX(-50%) rotate(45deg);
+}
+.bubble.pop { animation: bubblePop .35s var(--ease-pop) both; }
+@keyframes bubblePop {
+  0%   { transform: scale(.7); opacity: 0; }
+  70%  { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.bubble .cue {
+  position: absolute; right: 12px; bottom: 6px;
+  color: var(--akane); font-size: .75rem;
+  opacity: 0;
+}
+.bubble .cue.on { animation: cueBlink 1s steps(2, jump-none) infinite; }
+@keyframes cueBlink {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.cat { width: 150px; margin-top: 14px; }
+.cat.jump { animation: catSquash .5s var(--ease-pop) both; }
+@keyframes catSquash {
+  0%   { transform: scale(1, 1); }
+  30%  { transform: scale(1.12, .82) translateY(6px); }
+  60%  { transform: scale(.92, 1.1) translateY(-8px); }
+  100% { transform: scale(1, 1) translateY(0); }
+}
+.cat .eyes {
+  transform-box: fill-box; transform-origin: center;
+  animation: catBlink 4.2s infinite;
+}
+@keyframes catBlink {
+  0%, 91%, 100% { transform: scaleY(1); }
+  94%           { transform: scaleY(.08); }
+}
+.cat .tail {
+  transform-box: fill-box; transform-origin: left bottom;
+  animation: tailSway 2.8s ease-in-out infinite;
+}
+@keyframes tailSway {
+  0%, 100% { transform: rotate(0); }
+  50%      { transform: rotate(14deg); }
+}
+
+/* ===== アンカーリンクの位置調整（固定ヘッダー分） ===== */
+section[id] { scroll-margin-top: 90px; }
+
 /* ===== モーション軽減 ===== */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

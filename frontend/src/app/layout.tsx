@@ -28,17 +28,16 @@ export default function RootLayout({
       <body>
         <Opening />
 
-        <nav className="sticky top-0 z-50 flex items-center gap-4 border-b-2 border-[var(--ink)] bg-[var(--paper)]/90 px-5 py-3 backdrop-blur">
-          <Link href="/" className="disp text-base">
+<nav className="sticky top-0 z-50 flex items-center gap-4 border-b-2 border-[var(--ink)] bg-[var(--paper)]/90 px-5 py-3 backdrop-blur">
+          <a href="#hero" className="disp text-base">
             村田<span className="text-[var(--akane)]">つぐみ</span>
-          </Link>
+          </a>
           <div className="ml-auto flex gap-2">
-            <Link href="/works" className="btn btn--mini">Works</Link>
-            <Link href="/posts" className="btn btn--mini">Blog</Link>
-            <Link href="/about" className="btn btn--mini">About</Link>
+            <a href="#about" className="btn btn--mini">About</a>
+            <a href="#works" className="btn btn--mini">Works</a>
+            <a href="#blog" className="btn btn--mini">Blog</a>
           </div>
         </nav>
-
         {children}
 
         <footer className="mt-24 border-t-2 border-[var(--ink)] bg-[var(--paper-2)] px-6 py-10 text-center">
