@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_12_071936) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_12_075400) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -35,5 +35,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_12_071936) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  create_table "works", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "title", null: false
+    t.text "description"
+    t.string "tech_stack", default: [], array: true
+    t.string "video_url"
+    t.string "thumbnail_url"
+    t.string "github_url"
+    t.string "demo_url"
+    t.integer "position"
+    t.boolean "published", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["position"], name: "index_works_on_position"
+    t.index ["user_id"], name: "index_works_on_user_id"
+  end
+
   add_foreign_key "posts", "users"
+  add_foreign_key "works", "users"
 end

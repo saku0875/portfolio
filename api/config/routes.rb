@@ -13,16 +13,22 @@ Rails.application.routes.draw do
   post "/login", to: "authentication#login"
   get  "/me",    to: "authentication#me"
 
-  # 記事リンクAPI
+  # 記事リンクAPI・制作物API
   namespace :api do
     namespace :v1 do
-      # 公開用: 一覧のみ（外部リンクに飛ぶだけなので詳細は不要）
+      # 公開用
       resources :posts, only: [:index]
+      resources :works, only: [:index]
 
-      # 管理用: フルCRUD
+      # 管理用
       namespace :admin do
         resources :posts
-      end
-    end
-  end
-end
+        resources :works do
+          collection do
+            patch :reorder
+          end          # ← collection の end
+        end            # ← resources :works の end
+      end              # ← namespace :admin の end
+    end                # ← namespace :v1 の end
+  end                  # ← namespace :api の end
+end                    # ← routes.draw の end

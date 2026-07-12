@@ -19,4 +19,29 @@ Post.find_or_create_by!(url: "https://qiita.com/example/items/docker-rails-nextj
   post.published   = false
 end
 
-puts "Seed完了: User=#{User.count}, Post=#{Post.count} (published=#{Post.published.count})"
+# 制作物（公開2件・非公開1件）
+Work.find_or_create_by!(title: "Pyxelゲーム") do |work|
+  work.user          = admin
+  work.description   = "PythonのPyxelで作ったレトロ風2Dゲーム"
+  work.tech_stack    = ["Python", "Pyxel"]
+  work.github_url    = "https://github.com/example/pyxel-game"
+  work.published     = true
+end
+
+Work.find_or_create_by!(title: "Bookmark App") do |work|
+  work.user          = admin
+  work.description   = "Next.jsとSupabaseで作ったブックマーク管理アプリ"
+  work.tech_stack    = ["Next.js", "Supabase", "TypeScript"]
+  work.github_url    = "https://github.com/example/bookmark-app"
+  work.demo_url      = "https://bookmark-app.example.com"
+  work.published     = true
+end
+
+Work.find_or_create_by!(title: "Arduino音楽（非公開）") do |work|
+  work.user          = admin
+  work.description   = "Arduinoで音楽を鳴らす電子工作"
+  work.tech_stack    = ["C", "Arduino"]
+  work.published     = false
+end
+
+puts "Seed完了: User=#{User.count}, Post=#{Post.count} (published=#{Post.published.count}), Work=#{Work.count} (published=#{Work.published.count})"
