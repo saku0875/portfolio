@@ -12,4 +12,17 @@ Rails.application.routes.draw do
   # 認証
   post "/login", to: "authentication#login"
   get  "/me",    to: "authentication#me"
+
+  # 記事リンクAPI
+  namespace :api do
+    namespace :v1 do
+      # 公開用: 一覧のみ（外部リンクに飛ぶだけなので詳細は不要）
+      resources :posts, only: [:index]
+
+      # 管理用: フルCRUD
+      namespace :admin do
+        resources :posts
+      end
+    end
+  end
 end

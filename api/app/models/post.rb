@@ -1,6 +1,16 @@
 class Post < ApplicationRecord
   belongs_to :user
-  enum :status, { draft: 0, published: 1 }
+
   validates :title, presence: true
-  scope :published, -> { where(status: :published).order(published_at: :desc) }
+  validates :url,   presence: true, format: { with: %r{\Ahttps?://}, message: "はhttp(s)://で始まる必要があります" }
+
+  scope :published, -> { where(published: true) }
+
+  before_save :set_published_at
+
+  private
+
+  def set_published_at
+    self.published_at = Time.current if published && published_at.nil?
+  end
 end
