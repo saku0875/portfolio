@@ -75,3 +75,115 @@ curl: (3) URL rejected: Malformed input to a URL function
   - ファイル貼り付け後は `ruby -c <ファイル>` で構文チェック
   - 引き継ぎメモの「実装済み」は実ファイルを `cat` で確認してから信用する
 - Zenn記事ネタ: 「Rails APIにJWT認証を実装した話（Zeitwerkの罠と構文チェックの習慣）」
+
+2026-07-12 記事リンクCRUD・制作物CRUD・CORS設定の実装
+やったこと
+
+前回残タスクの確認: リモートmainには認証実装がマージ済みだったことをgit pullで確認（fa9d94b..309d620）。ローカルmainを同期
+feature/5-posts-crud ブランチで記事リンクCRUD APIを実装
+
+postsテーブル改修マイグレーション ChangePostsForExternalLinks: body(text)・status(integer)を削除、url(string, null: false)・description(text)・published(boolean, default: false, null: false)を追加
+Postモデル書き直し: enum :status削除、titleとurlのバリデーション（url形式は%r{\Ahttps?://}）、scope :published、before_save :set_published_at（published_at.nil?のときのみ記録＝初公開日時を保持）
+seeds.rbを新スキーマで書き直し（一意判定キーをtitleからurlに変更、公開1件・非公開1件）
+ルーティング: namespace :api > :v1 で公開用 resources :posts, only: [:index] と管理用 namespace :admin > resources :posts を分離
+Api::V1::PostsController（公開・skip_before_action・publishedのみ・5フィールドに絞る）と Api::V1::Admin::PostsController（認証必須・フルCRUD・Strong Parameters・current_user.posts.build）を実装
+curl検証7パターン全通過（401 / 200下書き含む2件 / 201作成+published_at自動記録 / 422バリデーション / 200更新+published_at保持確認 / 204削除 / 404削除済みid）
+
+
+feature/6-works-crud ブランチで制作物CRUD APIを実装
+
+worksテーブル新規作成: tech_stackはPostgreSQL配列型（string, array: true, default: []）、positionにindex、publishedはdefault: false
+Workモデル: title必須、URL系4カラムはallow_blank: true+形式チェック（URL_FORMAT定数で共通化）、scope :published / scope :ordered、before_create :set_default_position（最大position+1の自動採番）
+User モデルに has_many :works を追加
+seedsに制作物3件（公開2・非公開1）を追加、position自動採番が1,2,3となることを確認
+ルーティングにcollection do patch :reorder endで並び替えエンドポイントを追加（計8本）
+公開用・管理用コントローラを実装。reorderは{"ids": [...]}を受けてposition振り直し、Work.transaction+update!で全件成功or全ロールバック
+curl検証全通過。ids:[4,3,2,1]での並び替え→公開APIへの反映（非公開は除外されたまま）も確認
+
+
+feature/7-cors ブランチでCORS設定
+
+Gemfileのrack-corsコメントアウト解除、bundle lock --update→bundle install（今回は権限エラーなし、再ビルド不要だった）
+config/initializers/cors.rb作成: オリジンはENV.fetch("FRONTEND_ORIGIN", "http://localhost:3000")で環境変数切替可能に、headers: :any、OPTIONSを含む全メソッド許可、max_age: 600
+プリフライト検証OK（access-control-allow-headersにAuthorization含む）、不正オリジン（evil.example.com）にはallow-originヘッダが付かないことを確認
+
+
+コミット: 記事CRUD分・works分（10ファイル、テスト雛形含む）・CORS分をそれぞれの機能ブランチでコミットしmainへマージ
+
+ハマったこと（エラー全文）
+1. マイグレーション後のrails runnerで落ちる: モデルに残ったenum :status
+/usr/local/bundle/gems/activerecord-7.2.3.1/lib/active_record/enum.rb:261:in `block in _enum': Undeclared attribute type for enum 'status' in Post. Enums must be backed by a database column or declared with an explicit type via `attribute`. (RuntimeError)
+
+原因: DBからstatusカラムを削除したが、Postモデルのenum :status宣言が残っていた。enumは裏付けカラムが必須なので、クラス読み込み時点で例外
+対処: モデル書き直し時にenum宣言を削除。「カラムを消すときはモデル側の宣言（enum/バリデーション/コールバック）も同時に見直す」が教訓
+
+2. seeds.rbで構文エラー: 貼り付け時に最終行が切れた
+SyntaxError: --> /app/db/seeds.rb
+unterminated string; expected a closing delimiter for the interpolated string
+> 22  puts "Seed完了: User=#{User.count},
+/app/db/seeds.rb:22: unterminated string meets end of file (SyntaxError)
+
+原因: 複数行貼り付けで最終行の文字列が途中で切れてファイル終端に達した
+対処: 最終行を貼り直し。ruby -cをモデルには適用したのにseeds.rbには適用していなかった。「貼り付けたRubyファイルはすべてruby -c」に格上げ
+
+3. ログインが401: seedのパスワードが実DBと不一致
+{"error":"メールアドレスまたはパスワードが正しくありません"}
+（例外なし。server-timingにsql.active_recordとinstantiation.active_recordがあり、ユーザー取得はできている＝パスワード照合で失敗と推定できた）
+
+原因: find_or_create_by!のブロックは新規作成時しか実行されない。管理者は前回seedで作成済みだったため、今回seeds.rbに書いたpassword123は一度も設定されておらず、実パスワードは前回の値のままだった
+対処: rails runner 'User.find_by!(email: "admin@example.com").update!(password: "password123")'でリセット
+冪等seedの副作用: 「seedファイルに書いてある値＝DBの値」とは限らない
+
+4. routes.rbでend不足による起動不能
+/app/config/routes.rb:33: syntax error, unexpected end-of-input, expecting `end' or dummy end (SyntaxError)
+
+原因: resources :works do > collection doの入れ子追加時にendが不足。Rails自体が起動できなくなり、curlは(7) Failed to connectに
+対処: endの対応を確認して修正。routes.rbもRubyファイルなのでruby -c config/routes.rbが使える
+
+5. works作成で500: Userモデルにhas_many :worksがない
+"exception":"#<NoMethodError: undefined method `works' for an instance of User>"
+"Application Trace":[{"trace":"app/controllers/api/v1/admin/works_controller.rb:19:in `create'"}]
+
+原因: Workにbelongs_to :userは書いたが、User側のhas_many :worksを忘れた。関連は双方向に宣言が必要。postsで同エラーが出なかったのは前回セッションでhas_many :postsを書いていたため
+連鎖: 作成失敗(500)→バリデーション検証も500→id:4不在でreorderが404→ただしトランザクションのロールバックとrescue_fromの404は正しく機能していた
+対処: has_many :works, dependent: :destroyを追加
+
+6. 操作ミス: restart完了前のcurl実行
+curl: (56) Recv failure: Connection reset by peer
+
+原因: docker compose restartの完了を待たずに次のコマンドが走った
+対処: docker compose restart backend && sleep 5 && curl ...の形式を導入
+
+判断したこと・理由
+
+公開側にshowを作らない: 記事は外部リンクに飛ぶだけで詳細ページを持たないため、ルート自体を生やさない（only: [:index]）
+レスポンスフィールドをエンドポイントごとにas_json(only:)で絞る: 公開一覧は5フィールド、管理側はADMIN_FIELDS定数で一元管理。不要な内部情報（user_id等）を公開側に漏らさない
+published_atはpublished_at.nil?のときのみ記録: 非公開→再公開しても初公開日時を保持するため
+tech_stackはjsonbでなくPostgreSQL配列型: 単純な文字列リストには配列型が素直。オブジェクト化が必要になったらそのときマイグレーションする
+positionはbefore_createで自動採番（||=）: 未指定なら末尾に追加、指定があれば尊重
+reorderはcollectionルート+id配列受け取り+トランザクション: 複数レコードの一括更新なので特定idに紐づかない。update!で途中失敗時は全ロールバック
+URL系バリデーションはallow_blank: true: worksの4URLは任意項目のため「空はOK、入っていれば形式チェック」
+CORSのoriginは環境変数FRONTEND_ORIGINで切替: 本番デプロイ時にコード変更不要。origins "*"はJWTを扱うAPIでは採用しない
+current_user.posts.build/current_user.works.buildで作成: リクエストからuser_idを受け取らない＝なりすまし登録の余地を作らない
+
+未解決・次回やること
+
+次の実装フェーズ: Next.js 15フロントエンド
+
+公開画面（トップ・制作物一覧・記事一覧・About/Contact）から着手し、その後管理画面（ログイン・CRUD）
+App Router、Server Components、JWT の保存方法（cookie vs メモリ）などの設計判断が必要
+
+
+VPSデプロイ（フロント完成後）
+seedのダミーURLを実際のQiita/Zenn記事URLに差し替える（管理APIからでも可）
+恒常的な知見への追記候補:
+
+貼り付けたRubyファイルはすべてruby -c（routes.rb含む）
+find_or_create_by!のブロックは既存レコードに適用されない（seedの値変更≠DBの値変更）
+カラム削除時はモデル側の宣言（enum等）も同時に見直す
+belongs_toとhas_manyは双方向セットで書く
+docker compose restart backend && sleep 5 && <次コマンド>の形式で完了待ちを挟む
+
+
+Zenn記事ネタ: 「Rails APIで公開/管理エンドポイントを分離する設計」「find_or_create_by!の冪等seedに潜む罠」
+

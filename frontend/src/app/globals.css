@@ -1,26 +1,196 @@
 @import "tailwindcss";
 
+/* ===== デザイントークン ===== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #FFFCFA;
+  --paper-2: #FFFFFF;
+  --ink: #2B2224;
+  --ink-soft: #7A6B6D;
+  --akane: #B7282E;
+  --akane-lt: #E8737A;
+  --akane-pale: #FBE9EA;
+  --gold: #D9A441;
+  --line: #EFE4E5;
+
+  --ease-cut: cubic-bezier(.87, 0, .13, 1);
+  --ease-pop: cubic-bezier(.22, 1, .36, 1);
+
+  --disp: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", sans-serif;
+  --body: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", sans-serif;
+  --mono: "M PLUS 1 Code", ui-monospace, monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+html { scroll-behavior: smooth; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.9;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--gold); color: var(--ink); }
+
+/* ===== 幕（オープニング / スライド切替 共通） ===== */
+.curtain { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.curtain i {
+  position: absolute; inset: 0; display: block;
+  transform: scaleX(0); transform-origin: right;
+}
+.curtain i:nth-child(1) { background: var(--gold); }
+.curtain i:nth-child(2) { background: var(--akane-lt); }
+.curtain i:nth-child(3) { background: var(--akane); }
+
+/* オープニング：覆った状態から右へ抜ける */
+.curtain-open i { animation: curtainOut .9s var(--ease-cut) both; }
+.curtain-open i:nth-child(3) { animation-delay: 0s; }
+.curtain-open i:nth-child(2) { animation-delay: .13s; }
+.curtain-open i:nth-child(1) { animation-delay: .26s; }
+@keyframes curtainOut {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+/* スライド切替：左から覆って右へ抜ける（45〜55%で中身を差し替える） */
+.curtain-wipe i { animation: curtainWipe .9s var(--ease-cut) both; }
+.curtain-wipe i:nth-child(1) { animation-delay: 0s; }
+.curtain-wipe i:nth-child(2) { animation-delay: .06s; }
+.curtain-wipe i:nth-child(3) { animation-delay: .12s; }
+@keyframes curtainWipe {
+  0%   { transform: scaleX(0); transform-origin: left; }
+  45%  { transform: scaleX(1); transform-origin: left; }
+  55%  { transform: scaleX(1); transform-origin: right; }
+  100% { transform: scaleX(0); transform-origin: right; }
+}
+
+/* ===== 文字分割アニメーション ===== */
+.char { display: inline-block; will-change: transform; }
+
+/* Home: 下からポップ */
+.anim-pop .char {
+  animation: charPop .55s var(--ease-pop) both;
+  animation-delay: calc(var(--base, 0s) + var(--i) * .05s);
+}
+@keyframes charPop {
+  0%   { opacity: 0; transform: translateY(1em) scale(.6) rotate(8deg); }
+  70%  { transform: translateY(-.08em) scale(1.05); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* Posts: 左からスライドイン */
+.anim-slide .char {
+  animation: charSlide .5s var(--ease-pop) both;
+  animation-delay: calc(var(--base, 0s) + var(--i) * .04s);
+}
+@keyframes charSlide {
+  from { opacity: 0; transform: translateX(-.6em); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* About: 二重文字（縁取りが揺れる） */
+.anim-dup .char { position: relative; z-index: 0; }
+.anim-dup .char::before {
+  content: attr(data-char);
+  position: absolute; left: 0; top: 0; z-index: -1;
+  color: transparent;
+  -webkit-text-stroke: 2.5px var(--akane);
+  animation: ghostSlide 2.6s ease-in-out infinite;
+  animation-delay: calc(var(--i) * .14s);
+}
+.anim-dup .char:nth-child(even)::before {
+  -webkit-text-stroke-color: var(--gold);
+}
+@keyframes ghostSlide {
+  0%, 100% { transform: translate(0, 0); opacity: .95; }
+  50%      { transform: translate(.16em, -.16em); opacity: .35; }
+}
+
+/* Works: 帯ワイプ */
+.wipe { position: relative; display: inline-block; }
+.wipe > span { opacity: 0; display: inline-block; padding: 0 4px; }
+.wipe::after {
+  content: ""; position: absolute; inset: -3px -8px;
+  background: var(--band, var(--akane));
+  transform: scaleX(0); transform-origin: left;
+}
+.wipe.play::after {
+  animation: bandWipe 1s var(--ease-cut) both;
+  animation-delay: var(--d, 0s);
+}
+.wipe.play > span {
+  animation: wipeText 1s both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes bandWipe {
+  0%   { transform: scaleX(0); transform-origin: left; }
+  45%  { transform: scaleX(1); transform-origin: left; }
+  55%  { transform: scaleX(1); transform-origin: right; }
+  100% { transform: scaleX(0); transform-origin: right; }
+}
+@keyframes wipeText {
+  0%, 49%   { opacity: 0; }
+  50%, 100% { opacity: 1; }
+}
+
+/* ===== 汎用フェードアップ（Reveal用） ===== */
+.reveal { opacity: 0; }
+.reveal.play { animation: fadeUp .8s var(--ease-pop) both; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ===== ボタン ===== */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--disp); font-weight: 700; font-size: .85rem;
+  color: var(--ink); background: var(--paper-2);
+  border: 2px solid var(--ink); border-radius: 999px;
+  padding: 8px 20px; cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform .15s var(--ease-pop), box-shadow .15s, background .15s;
+}
+.btn:hover {
+  transform: translate(-1px, -2px);
+  box-shadow: 5px 5px 0 var(--ink);
+  background: var(--gold);
+}
+.btn:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
+.btn:focus-visible { outline: 3px solid var(--akane); outline-offset: 3px; }
+.btn--mini { font-size: .75rem; padding: 4px 14px; box-shadow: 2px 2px 0 var(--ink); }
+
+/* ===== カード ===== */
+.card {
+  border: 2.5px solid var(--ink); border-radius: 18px;
+  background: var(--paper-2);
+  box-shadow: 4px 4px 0 var(--line);
+  transition: transform .18s var(--ease-pop), box-shadow .18s;
+}
+.card:hover {
+  transform: translate(-2px, -3px);
+  box-shadow: 7px 7px 0 var(--akane-pale);
+}
+
+/* ===== タグ（tech_stack） ===== */
+.tag {
+  font-family: var(--mono); font-size: .72rem;
+  border: 2px solid var(--ink); border-radius: 999px;
+  background: var(--akane-pale); color: var(--ink);
+  padding: 1px 10px; white-space: nowrap;
+}
+
+/* ===== 見出しフォント ===== */
+.disp { font-family: var(--disp); font-weight: 900; }
+
+/* ===== モーション軽減 ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001s !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition: none !important;
+  }
+  html { scroll-behavior: auto; }
 }
