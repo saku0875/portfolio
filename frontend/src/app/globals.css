@@ -1,37 +1,44 @@
 @import "tailwindcss";
 
-/* ===== デザイントークン ===== */
+/* ===== デザイントークン（茜×白・明朝ベース） ===== */
 :root {
-  --paper: #FFFCFA;
-  --paper-2: #FFFFFF;
-  --ink: #2B2224;
-  --ink-soft: #7A6B6D;
+  --white: #FDFCFA;
+  --pure: #FFFFFF;
+  --ink: #231D1F;
+  --ink-2: #43393C;
   --akane: #B7282E;
-  --akane-lt: #E8737A;
-  --akane-pale: #FBE9EA;
-  --gold: #D9A441;
-  --line: #EFE4E5;
-
+  --akane-deep: #8E1E24;
+  --akane-pale: #F7EAE8;
+  --gray: #8B8084;
+  --line: #E9DFDC;
+  --line-dark: #4A4144;
+  --mist: #F0EDEC;
+  --serif: var(--font-serif), "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --sans: var(--font-sans), "Hiragino Kaku Gothic ProN", sans-serif;
+  --mono: var(--font-mono), ui-monospace, monospace;
   --ease-cut: cubic-bezier(.87, 0, .13, 1);
   --ease-pop: cubic-bezier(.22, 1, .36, 1);
 
-  --disp: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", sans-serif;
-  --body: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", sans-serif;
-  --mono: "M PLUS 1 Code", ui-monospace, monospace;
+  /* ---- 旧トークン互換エイリアス（リデザイン完了後に削除） ---- */
+  --paper: var(--white);
+  --paper-2: var(--pure);
+  --ink-soft: var(--gray);
+  --akane-lt: #E8737A;
+  --gold: #D9A441;
+  --disp: var(--serif);
+  --body: var(--sans);
 }
-
 html { scroll-behavior: smooth; }
-
 body {
-  background: var(--paper);
+  background: var(--white);
   color: var(--ink);
-  font-family: var(--body);
+  font-family: var(--sans);
   font-size: 15px;
-  line-height: 1.9;
+  line-height: 2;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
-
-::selection { background: var(--gold); color: var(--ink); }
+::selection { background: var(--akane); color: #fff; }
 
 /* ===== 幕（オープニング / スライド切替 共通） ===== */
 .curtain { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
@@ -39,9 +46,9 @@ body {
   position: absolute; inset: 0; display: block;
   transform: scaleX(0); transform-origin: right;
 }
-.curtain i:nth-child(1) { background: var(--gold); }
-.curtain i:nth-child(2) { background: var(--akane-lt); }
-.curtain i:nth-child(3) { background: var(--akane); }
+.curtain i:nth-child(1) { background: var(--akane-pale); }
+.curtain i:nth-child(2) { background: var(--akane); }
+.curtain i:nth-child(3) { background: var(--ink); }
 
 /* オープニング：覆った状態から右へ抜ける */
 .curtain-open i { animation: curtainOut .9s var(--ease-cut) both; }
@@ -52,6 +59,14 @@ body {
   from { transform: scaleX(1); }
   to   { transform: scaleX(0); }
 }
+
+/* オープニング専用：全画面固定・初期は覆った状態、body.loadedで右へ抜ける */
+.curtain--opening { position: fixed; z-index: 100; }
+html.js .curtain--opening i { transform: scaleX(1); }
+body.loaded .curtain--opening i { animation: curtainOut .9s var(--ease-cut) both; }
+body.loaded .curtain--opening i:nth-child(3) { animation-delay: .05s; }
+body.loaded .curtain--opening i:nth-child(2) { animation-delay: .22s; }
+body.loaded .curtain--opening i:nth-child(1) { animation-delay: .39s; }
 
 /* スライド切替：左から覆って右へ抜ける（45〜55%で中身を差し替える） */
 .curtain-wipe i { animation: curtainWipe .9s var(--ease-cut) both; }
@@ -184,70 +199,6 @@ body {
 /* ===== 見出しフォント ===== */
 .disp { font-family: var(--disp); font-weight: 900; }
 
-/* ===== 猫の会話 ===== */
-.bubble {
-  position: relative;
-  width: 100%;
-  border: 2.5px solid var(--ink);
-  border-radius: 16px;
-  background: var(--paper-2);
-  padding: 14px 18px 16px;
-  font-size: .9rem;
-  line-height: 1.8;
-  min-height: 5.2em;
-  box-shadow: 3px 3px 0 var(--line);
-}
-.bubble::after {
-  content: "";
-  position: absolute; left: 50%; bottom: -11px;
-  width: 16px; height: 16px;
-  background: var(--paper-2);
-  border-right: 2.5px solid var(--ink);
-  border-bottom: 2.5px solid var(--ink);
-  transform: translateX(-50%) rotate(45deg);
-}
-.bubble.pop { animation: bubblePop .35s var(--ease-pop) both; }
-@keyframes bubblePop {
-  0%   { transform: scale(.7); opacity: 0; }
-  70%  { transform: scale(1.04); }
-  100% { transform: scale(1); opacity: 1; }
-}
-.bubble .cue {
-  position: absolute; right: 12px; bottom: 6px;
-  color: var(--akane); font-size: .75rem;
-  opacity: 0;
-}
-.bubble .cue.on { animation: cueBlink 1s steps(2, jump-none) infinite; }
-@keyframes cueBlink {
-  0%   { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-.cat { width: 150px; margin-top: 14px; }
-.cat.jump { animation: catSquash .5s var(--ease-pop) both; }
-@keyframes catSquash {
-  0%   { transform: scale(1, 1); }
-  30%  { transform: scale(1.12, .82) translateY(6px); }
-  60%  { transform: scale(.92, 1.1) translateY(-8px); }
-  100% { transform: scale(1, 1) translateY(0); }
-}
-.cat .eyes {
-  transform-box: fill-box; transform-origin: center;
-  animation: catBlink 4.2s infinite;
-}
-@keyframes catBlink {
-  0%, 91%, 100% { transform: scaleY(1); }
-  94%           { transform: scaleY(.08); }
-}
-.cat .tail {
-  transform-box: fill-box; transform-origin: left bottom;
-  animation: tailSway 2.8s ease-in-out infinite;
-}
-@keyframes tailSway {
-  0%, 100% { transform: rotate(0); }
-  50%      { transform: rotate(14deg); }
-}
-
 /* ===== Videos スライドショー ===== */
 .slider {
   position: relative;
@@ -256,6 +207,140 @@ body {
   border-radius: 20px;
   background: var(--paper-2);
   box-shadow: 5px 5px 0 var(--line);
+}
+
+/* ============================================================
+   Step2: 基本アニメーション
+   ============================================================ */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeDown { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes charRise {
+  from { opacity: 0; transform: translateY(.85em) rotate(4deg); }
+  to { opacity: 1; transform: translateY(0) rotate(0); }
+}
+
+/* ============================================================
+   Step2: ナビ（fixed・mono英字・茜下線ホバー）
+   ============================================================ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+  display: flex; align-items: center; gap: 26px;
+  padding: 16px 28px;
+  background: color-mix(in srgb, var(--white) 86%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+html.js .nav { opacity: 0; }
+body.loaded .nav { animation: fadeDown .7s var(--ease-pop) 1s both; }
+.nav__logo {
+  font-family: var(--serif); font-weight: 800; font-size: 1.2rem;
+  letter-spacing: .06em; text-decoration: none;
+}
+.nav__logo em { font-style: normal; color: var(--akane); }
+.nav__links { display: flex; gap: 24px; margin-left: auto; overflow-x: auto; scrollbar-width: none; }
+.nav__links::-webkit-scrollbar { display: none; }
+.nav__links a {
+  position: relative;
+  font-family: var(--mono); font-size: .72rem; letter-spacing: .18em;
+  text-decoration: none; color: var(--ink-2); white-space: nowrap;
+  padding: 4px 0;
+}
+.nav__links a::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  background: var(--akane);
+  transform: scaleX(0); transform-origin: right;
+  transition: transform .35s var(--ease-cut);
+}
+.nav__links a:hover::after { transform: scaleX(1); transform-origin: left; }
+.nav__links a:focus-visible { outline: 2px solid var(--akane); outline-offset: 4px; }
+
+/* ============================================================
+   Step2: ヒーロー
+   ============================================================ */
+.hero {
+  position: relative; min-height: 100svh;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 110px 0 60px;
+  background: var(--mist);
+}
+.hero__card {
+  background: var(--pure);
+  border-radius: 24px;
+  padding: clamp(48px, 9vw, 96px) clamp(24px, 6vw, 72px);
+  box-shadow: 0 12px 44px rgba(35, 29, 31, .06);
+}.hero__center { text-align: center; }
+.hero__eyebrow {
+  font-family: var(--mono); font-size: .72rem; letter-spacing: .34em;
+  color: var(--akane); margin-bottom: 26px;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+}
+.hero__eyebrow::before,
+.hero__eyebrow::after { content: ""; width: 44px; height: 1px; background: var(--akane); }
+html.js .hero__eyebrow { opacity: 0; }
+body.loaded .hero__eyebrow { animation: fadeUp .8s var(--ease-pop) .75s both; }
+.hero__title {
+  font-family: var(--serif); font-weight: 700;
+  font-size: clamp(1.7rem, 6vw, 3.6rem);
+  line-height: 1.32; letter-spacing: .05em;
+}
+.hero__title .char { display: inline-block; }
+html.js .hero__title .char { opacity: 0; }
+body.loaded .hero__title .char {
+  animation: charRise .8s var(--ease-pop) both;
+  animation-delay: calc(.7s + var(--i) * .05s);
+}
+.hero__title em { font-style: normal; color: var(--akane); display: inline-block; }
+html.js .hero__title em { opacity: 0; }
+body.loaded .hero__title em { animation: charRise .8s var(--ease-pop) 1.1s both; }
+
+/* ============================================================
+   Step2: 案内猫（ヒーロー内）
+   ============================================================ */
+.hero-cat {
+  display: flex; align-items: center; gap: 24px;
+  max-width: 680px; margin: 72px 0 0;
+  cursor: pointer;
+}
+html.js .hero-cat { opacity: 0; }
+body.loaded .hero-cat { animation: fadeUp .9s var(--ease-pop) 1.5s both; }
+.hero-cat:focus-visible { outline: 2px solid var(--akane); outline-offset: 8px; }
+.hero-cat__left { flex: none; text-align: center; }
+.bubble {
+  position: relative; z-index: 1; flex: 1;
+  border: 1.5px solid var(--ink); border-radius: 10px;
+  background: var(--pure);
+  padding: 16px 20px 20px;
+  font-size: .88rem; line-height: 1.9; text-align: left;
+  min-height: 5.4em;
+}
+.bubble::after {
+  content: ""; position: absolute; left: -8px; top: 50%;
+  width: 14px; height: 14px; background: var(--pure);
+  border-left: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink);
+  transform: translateY(-50%) rotate(45deg);
+}
+.bubble.pop { animation: bubblePop .35s var(--ease-pop) both; }
+@keyframes bubblePop { 0% { transform: scale(.8); opacity: 0; } 70% { transform: scale(1.03); } 100% { transform: scale(1); opacity: 1; } }
+.bubble .cue { position: absolute; right: 12px; bottom: 4px; color: var(--akane); font-size: .72rem; opacity: 0; }
+.bubble .cue.on { animation: cueBlink 1s steps(2, jump-none) infinite; }
+@keyframes cueBlink { 0% { opacity: 0; } 100% { opacity: 1; } }
+.cat { width: 110px; position: relative; z-index: 1; }
+.cat.jump { animation: catSquash .5s var(--ease-pop) both; }
+@keyframes catSquash {
+  0% { transform: scale(1, 1); }
+  30% { transform: scale(1.1, .84) translateY(5px); }
+  60% { transform: scale(.93, 1.08) translateY(-7px); }
+  100% { transform: scale(1, 1) translateY(0); }
+}
+.cat .eyes { transform-box: fill-box; transform-origin: center; animation: catBlink 4.4s infinite; }
+@keyframes catBlink { 0%, 91%, 100% { transform: scaleY(1); } 94% { transform: scaleY(.08); } }
+.cat .tail { transform-box: fill-box; transform-origin: left bottom; animation: tailSway 3s ease-in-out infinite; }
+@keyframes tailSway { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(12deg); } }
+.cat-hint { font-family: var(--mono); font-size: .62rem; letter-spacing: .24em; color: var(--gray); margin-top: 12px; }
+
+@media (max-width: 900px) {
+  .hero-cat { gap: 14px; margin-top: 64px; }
+  .cat { width: 84px; }
 }
 
 /* スライドを同じgridセルに重ねる */

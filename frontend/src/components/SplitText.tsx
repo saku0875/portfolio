@@ -1,11 +1,11 @@
 type Props = {
   text: string;
-  anim: "anim-pop" | "anim-slide" | "anim-dup";
+  anim?: string;
   base?: string;
   className?: string;
 };
 
-export default function SplitText({ text, anim, base = "0s", className = "" }: Props) {
+export default function SplitText({ text, anim = "", base = "0s", className = "" }: Props) {
   return (
     <span
       className={`${anim} ${className}`}

@@ -4,26 +4,28 @@ import Reveal from "@/components/Reveal";
 import CatDialog from "@/components/CatDialog";
 import VideoSlider from "@/components/VideoSlider";
 
-const TECH = ["Next.js", "Ruby on Rails", "C", "Pyxel", "Arduino"];
+const TECH = ["Next.js", "Ruby on Rails", "C", "Figma", "JavaScript", "Docker"];
 
 export default async function HomePage() {
   const [works, posts] = await Promise.all([getWorks(), getPosts()]);
 
   return (
     <main>
-      {/* ===== Hero ===== */}
-      <section id="hero" className="px-6 py-24 text-center">
-        <h1 className="disp text-4xl sm:text-5xl">
-          <SplitText text="村田つぐみ" anim="anim-pop" base="1.2s" />
-        </h1>
-        <Reveal className="reveal mt-4">
-          <p className="text-[var(--ink-soft)]">CS student · Game dev · Full-stack</p>
-        </Reveal>
-      </section>
-
-      {/* ===== 猫の会話 ===== */}
-      <section id="cat" className="px-6 pb-24">
-        <CatDialog />
+{/* ===== Hero ===== */}
+{/* ===== Hero ===== */}
+      <section id="hero" className="hero">
+        <div className="mx-auto w-full max-w-[1120px] px-6">
+          <div className="hero__card">
+            <div className="hero__center">
+              <p className="hero__eyebrow">PORTFOLIO — 2026</p>
+              <h1 className="hero__title">
+                <SplitText text="tsugumi" />
+                <em>.</em>
+              </h1>
+            </div>
+            <CatDialog />
+          </div>
+        </div>
       </section>
 
       {/* ===== Videos ===== */}
@@ -43,8 +45,8 @@ export default async function HomePage() {
         <Reveal className="reveal">
           <div className="card p-8">
             <p className="leading-relaxed">
-              CSを学ぶ学生です。ゲーム開発とWebアプリケーション開発に取り組んでいます。
-              このサイトもNext.jsとRails APIで自作しました。
+              「九州工業大学 生命科学情報工学科 医用生命工学コース」に所属<br />
+              学部1年で学内長期ハッカソン「KCLHack」にてWebアプリ開発を始め、以降フロントを中心に学んでいる。また現在は、VPSを借りてサーバーの運営等を行っている。
             </p>
 
             <ul className="mt-6 flex flex-wrap gap-2">
