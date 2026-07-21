@@ -187,3 +187,30 @@ docker compose restart backend && sleep 5 && <次コマンド>の形式で完了
 
 Zenn記事ネタ: 「Rails APIで公開/管理エンドポイントを分離する設計」「find_or_create_by!の冪等seedに潜む罠」
 
+### 判断したこと・理由
+
+- **リデザインStep 3〜6を保留し実データ化を優先**: 翌日提出のため。フォント・トークンはStep 1で切替済みなので、旧スタイルのセクションも互換エイリアスで破綻なく表示される
+- **旧トークンをエイリアスとして残す段階移行**: 一括置換はコンポーネント全部を同時に触ることになり、提出前のリスクが大きい
+- **タイトル表記は暫定でヒーロー=英字 `tsugumi.`、ナビ=「村田つぐみ」**: 明朝の大型見出しは英字小文字が映えるため(後で変更可能)
+- **ヒーローのカード化は境界線でなく背景色差+薄影で表現**: 参考画像(yui540風)の構図に合わせた
+- **seedを `find_or_initialize_by` + `assign_attributes` 方式に変更**: `find_or_create_by!` のブロックが既存レコードに効かない罠の恒久対策。ファイルの値=DBの値が常に成立する
+- **記事の `published_at` は明示指定**: コールバック任せだと全記事が投入日になるため。実投稿日を保持する
+- **動画はYouTubeでなくCloudinary**: 現行の `<video>` タグ実装のままコード修正ゼロで済む。YouTubeはiframe改修が必要な上、プレーヤーUIが乗り演出として損
+- **提出形態がリポジトリ提出のためVPS/PaaSデプロイは保留**: READMEに「今後の予定」として明記し、未完成でなく計画中として見せる
+
+### 未解決・次回やること
+
+- README.mdのpushとGitHub上での表示確認
+- mainへの最終マージ・push(提出物の確定)
+- **リデザインStep 3〜6の再開**(提出後): セクションヘッダ共通化+About / Works・Blog / VideoSlider強化 / Footer。完了時に旧トークンエイリアスを削除
+- 管理画面UI(ログイン・記事/制作物CRUD・並び替え)
+- VPSデプロイ(Xserver VPS+独自ドメイン)。PaaS(Vercel+Railway)での仮公開も選択肢
+- 記事②③が限定共有URL(`/private/`)のまま。Qiita側で公開に変更したらURLが変わるためseeds更新が必要
+- bookmark-managerの `demo_url` が `/auth/dashboard` 直リンク。未ログイン閲覧者の挙動を確認し、必要ならトップURLへ変更
+- Cloudinaryのpublic_idが日本語ファイル名由来でURLが長い。リネームするならURL変更とseeds更新をセットで
+- 管理者パスワードが開発初期値のまま(デプロイ時に必ず変更)
+- **恒常的な知見への追記候補**:
+  - ブラウザで見るのは3000、curlでAPIは3001
+  - `<p>` 内にブロック要素を書くとHydrationエラー("Invalid HTML tag nesting")。改行は `<br />`
+  - Cloudinaryの共有URLは埋め込み形式。`<video>` には `res.cloudinary.com/<cloud>/video/upload/<public_id>.mp4` の直URL。拡張子 `.jpg` でサムネイル取得可
+- Zenn記事ネタ: 「Next.jsのHydrationエラーの原因がHTMLの入れ子違反だった話」
