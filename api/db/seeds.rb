@@ -67,5 +67,3 @@ posts_data.each do |attrs|
   post.assign_attributes(attrs)
   post.save!
 end
-
-puts "Seed完了: User=#{User.count}, Work=#{Work.count}, Post=#{Post.count}"
