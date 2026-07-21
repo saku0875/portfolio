@@ -9,10 +9,10 @@ works_data = [
     title: "bookmark-manager",
     description: "初めて出たハッカソン「KCLHack」で作った一作品目のプロダクト。各アプリに保存したブックマークをまとめて、1つのアプリで管理できるサイトです。",
     tech_stack: ["Next.js", "Supabase"],
-    github_url: nil,
+    github_url: "https://github.com/saku0875/kclhack_2025_project4",
     demo_url: "https://bookmark.saku.cool/auth/dashboard",
-    video_url: nil,
-    thumbnail_url: nil,
+    video_url: "https://res.cloudinary.com/zzyw1qmt/video/upload/%E7%94%BB%E9%9D%A2%E9%8C%B2%E7%94%BB_2026-07-22_024023_xtwss0.mp4",
+    thumbnail_url: "https://res.cloudinary.com/zzyw1qmt/video/upload/%E7%94%BB%E9%9D%A2%E9%8C%B2%E7%94%BB_2026-07-22_024023_xtwss0.jpg",
     position: 1,
     published: true
   },
@@ -20,10 +20,10 @@ works_data = [
     title: "Daily gallery",
     description: "n8nを使って、Claudeが生成したアニメーションを毎日0時にサイトへ自動更新するサイト。コードも閲覧できるため、CSSアニメーションのアイデア出しにも使えます。",
     tech_stack: ["n8n", "Claude", "HTML"],
-    github_url: nil,
+    github_url: "https://github.com/saku0875/animation-galleryl",
     demo_url: "https://saku0875.github.io/animation-gallery/",
-    video_url: nil,
-    thumbnail_url: nil,
+    video_url: "https://res.cloudinary.com/zzyw1qmt/video/upload/%E7%94%BB%E9%9D%A2%E9%8C%B2%E7%94%BB_2026-07-22_023604_fbistn.mp4",
+    thumbnail_url: "https://res.cloudinary.com/zzyw1qmt/video/upload/%E7%94%BB%E9%9D%A2%E9%8C%B2%E7%94%BB_2026-07-22_023604_fbistn.jpg",
     position: 2,
     published: true
   }
