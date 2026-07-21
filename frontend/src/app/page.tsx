@@ -4,7 +4,7 @@ import Reveal from "@/components/Reveal";
 import CatDialog from "@/components/CatDialog";
 import VideoSlider from "@/components/VideoSlider";
 
-const TECH = ["Next.js", "Ruby on Rails", "C", "Pyxel", "Arduino"];
+const TECH = ["Next.js", "Ruby on Rails", "C", "Figma", "JavaScript", "Docker"];
 
 export default async function HomePage() {
   const [works, posts] = await Promise.all([getWorks(), getPosts()]);
@@ -27,7 +27,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-      
+
       {/* ===== Videos ===== */}
       <section id="videos" className="mx-auto max-w-4xl px-6 py-20">
         <h2 className="disp mb-8 text-3xl text-center">
@@ -45,8 +45,8 @@ export default async function HomePage() {
         <Reveal className="reveal">
           <div className="card p-8">
             <p className="leading-relaxed">
-              CSを学ぶ学生です。ゲーム開発とWebアプリケーション開発に取り組んでいます。
-              このサイトもNext.jsとRails APIで自作しました。
+              「九州工業大学 生命科学情報工学科 医用生命工学コース」に所属<br />
+              学部1年で学内長期ハッカソン「KCLHack」にてWebアプリ開発を始め、以降フロントを中心に学んでいる。また現在は、VPSを借りてサーバーの運営等を行っている。
             </p>
 
             <ul className="mt-6 flex flex-wrap gap-2">
