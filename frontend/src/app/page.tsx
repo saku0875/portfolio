@@ -11,21 +11,23 @@ export default async function HomePage() {
 
   return (
     <main>
-      {/* ===== Hero ===== */}
-      <section id="hero" className="px-6 py-24 text-center">
-        <h1 className="disp text-4xl sm:text-5xl">
-          <SplitText text="村田つぐみ" anim="anim-pop" base="1.2s" />
-        </h1>
-        <Reveal className="reveal mt-4">
-          <p className="text-[var(--ink-soft)]">CS student · Game dev · Full-stack</p>
-        </Reveal>
+{/* ===== Hero ===== */}
+{/* ===== Hero ===== */}
+      <section id="hero" className="hero">
+        <div className="mx-auto w-full max-w-[1120px] px-6">
+          <div className="hero__card">
+            <div className="hero__center">
+              <p className="hero__eyebrow">PORTFOLIO — 2026</p>
+              <h1 className="hero__title">
+                <SplitText text="tsugumi" />
+                <em>.</em>
+              </h1>
+            </div>
+            <CatDialog />
+          </div>
+        </div>
       </section>
-
-      {/* ===== 猫の会話 ===== */}
-      <section id="cat" className="px-6 pb-24">
-        <CatDialog />
-      </section>
-
+      
       {/* ===== Videos ===== */}
       <section id="videos" className="mx-auto max-w-4xl px-6 py-20">
         <h2 className="disp mb-8 text-3xl text-center">

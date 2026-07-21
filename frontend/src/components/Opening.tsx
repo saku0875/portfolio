@@ -6,14 +6,18 @@ export default function Opening() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDone(true), 1400);
-    return () => clearTimeout(timer);
+    const t1 = setTimeout(() => document.body.classList.add("loaded"), 60);
+    const t2 = setTimeout(() => setDone(true), 1500);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, []);
 
   if (done) return null;
 
   return (
-    <div className="curtain curtain-open fixed inset-0 z-[100]" aria-hidden="true">
+    <div className="curtain curtain--opening" aria-hidden="true">
       <i />
       <i />
       <i />
