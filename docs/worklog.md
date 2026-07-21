@@ -187,3 +187,90 @@ docker compose restart backend && sleep 5 && <次コマンド>の形式で完了
 
 Zenn記事ネタ: 「Rails APIで公開/管理エンドポイントを分離する設計」「find_or_create_by!の冪等seedに潜む罠」
 
+## 2026-07-22 UIリデザイン(Step1-2)・コンテンツ実データ化・提出準備
+
+### やったこと
+
+- 前セッション残タスクの後始末: worklog.mdをコミット(`935f70b`)→ mainへfast-forwardマージ・push → `feature/9-redesign` をmainと同期
+- **リデザインStep 1: フォント・デザイントークン**
+  - layout.tsxを `next/font/google` 方式に全面差し替え(Shippori Mincho / Zen Kaku Gothic New / M PLUS 1 Code、日本語フォントのため `preload: false`)
+  - `<html>` にインラインscriptで `js` クラスを付与(ノーJSフォールバック)、`suppressHydrationWarning` を併用
+  - globals.cssのトークンを茜×白の新体系に刷新。旧トークン名(`--paper` `--disp` 等)は新トークンへのエイリアスとして残し、未改修コンポーネントを壊さない段階移行方式にした
+- **リデザインStep 2: 幕・ナビ・ヒーロー・猫**
+  - オープニングの幕を茜系3色(pale→akane→ink)に変更、`body.loaded` 方式でモック準拠のタイミングに
+  - ナビをfixed化: 明朝ロゴ+mono英字リンク+茜下線ホバー、幕の後にfadeDownで登場
+  - ヒーローを刷新: eyebrow(PORTFOLIO — 2026)+明朝タイトル `tsugumi.` の文字送り(charRise)
+  - `#cat` セクションを廃止し、猫+吹き出しをヒーロー内に統合(CatDialogのロジックは流用、レイアウトとSVGを差し替え)
+  - フィードバックを受けタイトルを半分サイズに(`clamp(1.7rem, 6vw, 3.6rem)`)、ヒーローを「薄灰背景(--mist)+白カード+薄影」の構造に変更
+- **提出方針への切り替え**: 翌日提出のため、リデザインStep 3〜6を保留しコンテンツ実データ化を優先
+- Aboutの自己紹介・TECH配列を実内容に書き換え
+- seeds.rbを実データで書き直し: 作品2件(bookmark-manager / Daily gallery)・記事3件(Qiita)。`find_or_initialize_by` + `assign_attributes` + `save!` 方式に変更し、再実行で既存レコードにも値が反映されるようにした
+- 旧ダミーデータ(Work 4件・Post 2件)をIDを指定して削除
+- Cloudinaryに動画2本をアップロードし、埋め込みプレーヤーURLから直配信URL(`res.cloudinary.com/.../video/upload/....mp4`)に組み替えて `video_url` に登録。サムネイルは拡張子を `.jpg` に変えるだけで動画1フレーム目が返る機能を利用
+- スライダーで動画2本の自動再生を確認。提出形態はGitHubリポジトリ提出に確定し、READMEを作成
+
+### ハマったこと(エラー全文)
+
+#### 1. localhost:3001 を開いてRailsのウェルカムページが表示される
+
+エラーではなく、ポートの取り違え。3001はbackend(Rails)で、フロントは3000。コンテナ内部ではどちらも3000番で動いており、ホスト側マッピングだけがずれている(frontend 3000→3000、backend 3001→3000)ため紛らわしい。「ブラウザは3000、curlは3001」と覚える。
+
+#### 2. Hydrationエラー: 自己紹介文中に `<nav></nav>`
+
+```
+Recoverable Error
+Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client.
+This can happen if a SSR-ed Client Component used:
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+src/app/page.tsx (48:46) @ HomePage
+> 48 | 「九州工業大学 生命科学情報工学科 医用生命工学コース」に所属<nav></nav>
+```
+
+- **原因**: 自己紹介の書き換え時、改行のつもりで `<nav></nav>` を挿入。`<p>` 内にブロック要素は置けないため、ブラウザがDOMを組み替えてサーバーHTMLと不一致になった("Invalid HTML tag nesting" に該当)
+- **対処**: `<br />` に置換(改行の正しい書き方)。段落分けなら `<p>` を分ける
+
+#### 3. seed投入後も旧ダミーが画面に残る
+
+エラーメッセージなし。Works画面に旧4件+新2件が混在表示された。
+
+- **原因**: 削除コマンドのプレースホルダー(`旧ID`)をそのまま実行してエラーになった後、実IDでの再実行を挟まず先に進んでいた。一意判定キー(works=title / posts=url)が旧データと一致しないため、seedでは上書きされず残留する(想定どおりの挙動)
+- **対処**: `Work.where(id: [1,2,3,4]).destroy_all; Post.where(id: [3,4]).destroy_all` で削除 → `docker compose restart frontend`(ISRキャッシュ対策)+ハードリロード
+
+#### 4. Cloudinaryの共有URLが埋め込みプレーヤー形式
+
+`player.cloudinary.com/embed/?cloud_name=...&public_id=...` はページのURLなので `<video>` タグでは再生不可。
+
+- **対処**: URLに含まれる cloud_name と public_id から直配信URL `https://res.cloudinary.com/<cloud_name>/video/upload/<public_id>.mp4` に組み替えて解決。コード修正は不要だった
+
+### 判断したこと・理由
+
+- **リデザインStep 3〜6を保留し実データ化を優先**: 翌日提出のため。フォント・トークンはStep 1で切替済みなので、旧スタイルのセクションも互換エイリアスで破綻なく表示される
+- **旧トークンをエイリアスとして残す段階移行**: 一括置換はコンポーネント全部を同時に触ることになり、提出前のリスクが大きい
+- **タイトル表記は暫定でヒーロー=英字 `tsugumi.`、ナビ=「村田つぐみ」**: 明朝の大型見出しは英字小文字が映えるため(後で変更可能)
+- **ヒーローのカード化は境界線でなく背景色差+薄影で表現**: 参考画像(yui540風)の構図に合わせた
+- **seedを `find_or_initialize_by` + `assign_attributes` 方式に変更**: `find_or_create_by!` のブロックが既存レコードに効かない罠の恒久対策。ファイルの値=DBの値が常に成立する
+- **記事の `published_at` は明示指定**: コールバック任せだと全記事が投入日になるため。実投稿日を保持する
+- **動画はYouTubeでなくCloudinary**: 現行の `<video>` タグ実装のままコード修正ゼロで済む。YouTubeはiframe改修が必要な上、プレーヤーUIが乗り演出として損
+- **提出形態がリポジトリ提出のためVPS/PaaSデプロイは保留**: READMEに「今後の予定」として明記し、未完成でなく計画中として見せる
+
+### 未解決・次回やること
+
+- README.mdのpushとGitHub上での表示確認
+- mainへの最終マージ・push(提出物の確定)
+- **リデザインStep 3〜6の再開**(提出後): セクションヘッダ共通化+About / Works・Blog / VideoSlider強化 / Footer。完了時に旧トークンエイリアスを削除
+- 管理画面UI(ログイン・記事/制作物CRUD・並び替え)
+- VPSデプロイ(Xserver VPS+独自ドメイン)。PaaS(Vercel+Railway)での仮公開も選択肢
+- 記事②③が限定共有URL(`/private/`)のまま。Qiita側で公開に変更したらURLが変わるためseeds更新が必要
+- bookmark-managerの `demo_url` が `/auth/dashboard` 直リンク。未ログイン閲覧者の挙動を確認し、必要ならトップURLへ変更
+- Cloudinaryのpublic_idが日本語ファイル名由来でURLが長い。リネームするならURL変更とseeds更新をセットで
+- 管理者パスワードが開発初期値のまま(デプロイ時に必ず変更)
+- **恒常的な知見への追記候補**:
+  - ブラウザで見るのは3000、curlでAPIは3001
+  - `<p>` 内にブロック要素を書くとHydrationエラー("Invalid HTML tag nesting")。改行は `<br />`
+  - Cloudinaryの共有URLは埋め込み形式。`<video>` には `res.cloudinary.com/<cloud>/video/upload/<public_id>.mp4` の直URL。拡張子 `.jpg` でサムネイル取得可
+- Zenn記事ネタ: 「Next.jsのHydrationエラーの原因がHTMLの入れ子違反だった話」
